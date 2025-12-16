@@ -17,16 +17,48 @@ const HabitGraph = () => {
         [2, 1, 0, 2, 3, 1, 1],
     ];
 
-    // Sample Habit bar data
-    const habitData = [
-        { day: 'Mon', value: 75 },
-        { day: 'Tue', value: 90 },
-        { day: 'Wed', value: 60 },
-        { day: 'Thu', value: 85 },
-        { day: 'Fri', value: 45 },
-        { day: 'Sat', value: 95 },
-        { day: 'Sun', value: 70 },
-    ];
+    // Real Data Integration
+    const [dailyHabitsData, setDailyHabitsData] = useState({});
+
+    // Load data on mount and refresh interval (simple sync)
+    React.useEffect(() => {
+        const loadData = () => {
+            const saved = localStorage.getItem('jd-daily-habits');
+            setDailyHabitsData(saved ? JSON.parse(saved) : {});
+        };
+        loadData();
+        // Listen for storage events (if tabs change) or just interval
+        window.addEventListener('storage', loadData);
+        // Interval for same-tab updates if navigating back
+        const interval = setInterval(loadData, 1000);
+        return () => {
+            window.removeEventListener('storage', loadData);
+            clearInterval(interval);
+        };
+    }, []);
+
+    const dailyHabitsCount = 5; // Matches HabitTracker.jsx list length
+
+    // Compute last 7 days (or first 7 days for demo)
+    const habitData = React.useMemo(() => {
+        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        // We'll just take days 0-6 from the tracker for the "Weekly View"
+        return days.map((dayName, idx) => {
+            // Count completed habits for this day index (0-6)
+            let completed = 0;
+            // Iterate habits (names from tracker known or just check keys)
+            // Simpler: iterate known list or check wildcards?
+            // We know the list in HabitTracker.jsx: "Wake Up on Time", "Walk 2 Miles", "Read 1 Chapter", "Drink Water", "Code 1 Hour"
+            const habits = ["Wake Up on Time", "Walk 2 Miles", "Read 1 Chapter", "Drink Water", "Code 1 Hour"];
+            habits.forEach(h => {
+                if (dailyHabitsData[`${h}-${idx}`]) completed++;
+            });
+
+            // Calc percentage
+            const pct = dailyHabitsCount > 0 ? Math.round((completed / dailyHabitsCount) * 100) : 0;
+            return { day: dayName, value: pct };
+        });
+    }, [dailyHabitsData]);
 
     const getContributionColor = (level) => {
         const colors = [
@@ -39,7 +71,7 @@ const HabitGraph = () => {
     };
 
     const tabs = [
-        { key: 'github', label: 'GitHub' },
+        { key: 'github', label: 'Activity' },
         { key: 'habit', label: 'Habits' },
     ];
 
@@ -61,7 +93,7 @@ const HabitGraph = () => {
                             zIndex: activeTab === tab.key ? 10 : tabs.length - index,
                         }}
                     >
-                        <div className="px-3 py-1.5 flex items-center justify-center">
+                        <div className="px-2 pr-4 py-1.5 flex items-center justify-center">
                             <span className="text-[var(--bg)] font-bold text-xs select-none whitespace-nowrap">
                                 {tab.label}
                             </span>

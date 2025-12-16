@@ -1,40 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-const Footer = ({ currentTheme, onThemeChange }) => {
+const Footer = ({ currentTheme, onThemeChange, onBookmarkClick }) => {
     const [showThemePicker, setShowThemePicker] = useState(false);
-    const [currentTime, setCurrentTime] = useState(new Date());
-
-    // Update time every second
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentTime(new Date());
-        }, 1000);
-        return () => clearInterval(timer);
-    }, []);
-
-    const getGreeting = () => {
-        const hour = currentTime.getHours();
-        if (hour < 12) return "Good Morning";
-        if (hour < 17) return "Good Afternoon";
-        if (hour < 21) return "Good Evening";
-        return "Good Night";
-    };
-
-    const formatTime = () => {
-        return currentTime.toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        });
-    };
-
-    const formatDate = () => {
-        return currentTime.toLocaleDateString('en-US', {
-            weekday: 'short',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
+    const navigate = useNavigate();
 
     const themes = [
         { name: "Ocean Blue", fg: "#3A5EBE", bg: "#EBEBEB" },
@@ -50,16 +19,33 @@ const Footer = ({ currentTheme, onThemeChange }) => {
     return (
         <>
             <div className="flex justify-between items-end w-full">
-                {/* Left - Live Clock & Greeting */}
+                {/* Left - Bookmarks & Profile */}
                 <div className="flex items-center gap-4">
-                    <div className="h-14 px-5 border-2 border-current flex items-center gap-4">
-                        <div className="flex flex-col">
-                            <span className="text-xs font-medium opacity-70">{getGreeting()}</span>
-                            <span className="text-2xl font-bold tracking-tight">{formatTime()}</span>
-                        </div>
-                        <div className="w-px h-8 bg-current opacity-30"></div>
-                        <span className="text-sm font-bold">{formatDate()}</span>
-                    </div>
+                    {/* Bookmark Button */}
+                    <button
+                        onClick={onBookmarkClick}
+                        className="w-14 h-14 border-2 border-current flex items-center justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors cursor-pointer group"
+                        title="Bookmarks"
+                    >
+                        <svg
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.5"
+                            strokeLinecap="square"
+                            strokeLinejoin="miter"
+                            className="group-hover:scale-110 transition-transform"
+                        >
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                        </svg>
+                    </button>
+
+                    {/* Profile Button */}
+                    <button className="h-14 px-6 border-2 border-current flex items-center justify-center text-xl font-bold hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors cursor-pointer">
+                        @javaadde
+                    </button>
                 </div>
 
                 {/* Right Actions */}
@@ -77,18 +63,6 @@ const Footer = ({ currentTheme, onThemeChange }) => {
                         </svg>
                     </a>
 
-                    {/* Portfolio Link */}
-                    <a
-                        href="https://javaadde.github.io/portfolio"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="w-14 h-14 border-2 border-current flex items-center justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors cursor-pointer"
-                        title="Portfolio"
-                    >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter">
-                            <path d="M7 17L17 7M17 7H7M17 7V17" />
-                        </svg>
-                    </a>
 
                     {/* Theme Picker Button */}
                     <button
@@ -101,6 +75,32 @@ const Footer = ({ currentTheme, onThemeChange }) => {
                             <path d="M12 1v4m0 14v4m11-11h-4M5 12H1m18.07-7.07l-2.83 2.83M8.76 15.24l-2.83 2.83m12.14 0l-2.83-2.83M8.76 8.76L5.93 5.93" />
                         </svg>
                     </button>
+
+                    {/* Habit Tracker Button */}
+                    <button
+                        onClick={() => navigate('/habit-tracker')}
+                        className="w-14 h-14 border-2 border-current flex items-center justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors cursor-pointer"
+                        title="Habit Tracker"
+                    >
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                    </button>
+
+
+                    {/* Portfolio Link */}
+                    <a
+                        href="https://javaadde.vercel.app"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-14 h-14 border-2 border-current flex items-center justify-center hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors cursor-pointer"
+                        title="Portfolio"
+                    >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter">
+                            <path d="M7 17L17 7M17 7H7M17 7V17" />
+                        </svg>
+                    </a>
                 </div>
             </div>
 

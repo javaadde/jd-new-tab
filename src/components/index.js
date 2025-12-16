@@ -6,3 +6,5 @@ export { default as ProfileNav } from './ProfileNav';
 export { default as SearchWidget } from './SearchWidget';
 export { default as HabitGraph } from './HabitGraph';
 export { default as Footer } from './Footer';
+export { default as HeaderClock } from './HeaderClock';
+
