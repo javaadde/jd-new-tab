@@ -25,11 +25,11 @@ function Clock(){
        let hours = time.getHours();
        const minutes = time.getMinutes();
        const seconds = time.getSeconds();
-    //    const merediem = hours >= 12 ? "Pm" : "Am";
+       const merediem = hours >= 12 ? "am" : "am";
 
        hours = hours % 12 || 12
 
-       return `${setZero(hours)} : ${setZero(minutes)} : ${setZero(seconds)} `
+       return `${hours} : ${setZero(minutes)} `
     }
 
     function setZero(number){
@@ -38,7 +38,7 @@ function Clock(){
 
     return(
          <div className="mb-12">
-            <span className="text-6xl">{formateTime()}</span>
+            <span className="text-7xl">{formateTime()}</span>
         </div>
     )
 }
