@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
+import { getUserId } from '../utils/user.js';
 
 const HabitTracker = () => {
     const navigate = useNavigate();
@@ -14,14 +15,17 @@ const HabitTracker = () => {
     // -- STATE & BACKEND INTEGRATION --
 
     // Get or Create a User ID (simulating auth by device ID)
-    const [userId] = useState(() => {
-        let id = localStorage.getItem('jd-user-id');
-        if (!id) {
-            id = 'user_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('jd-user-id', id);
-        }
-        return id;
-    });
+    // Get User ID
+    const [userId] = useState(getUserId);
+
+    // -- DATE HELPERS --
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonthIndex = now.getMonth(); // 0-11
+    // Get month name (e.g. "January")
+    const currentMonthName = now.toLocaleString('default', { month: 'long' });
+    // Get days in current month
+    const daysInCurrentMonth = new Date(currentYear, currentMonthIndex + 1, 0).getDate();
 
     const [dailyHabitsData, setDailyHabitsData] = useState({});
     const [weeklyHabitsData, setWeeklyHabitsData] = useState({});
@@ -57,6 +61,9 @@ const HabitTracker = () => {
                     weeklyHabits: weeklyHabitsData,
                     monthlyHabits: monthlyHabitsData
                 });
+
+
+
             } catch (error) {
                 console.error("Failed to save habits:", error);
             }
@@ -71,7 +78,7 @@ const HabitTracker = () => {
 
     // -- CONFIG --
     const dailyHabitsList = [
-        "Wake Up on Time", "Walk 2 Miles", "Read 1 Chapter", "Drink Water", "Code 1 Hour"
+        "Eat Breakfast", "Solve Leetcode Problems", "Read a page of book", "Keep Github Streak"
     ];
 
     const weeklyHabitsList = [
@@ -82,13 +89,30 @@ const HabitTracker = () => {
         "Pay Bills", "Review Goals", "Deep Clean", "Backup Files"
     ];
 
-    const daysInMonth = 31; // Simplified for demo
+    // Removed hardcoded daysInMonth/weeksInMonth in favor of dynamic derived values above
     const weeksInMonth = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+
+    // -- KEY GENERATORS --
+    const getDailyKey = (habit, dayIndex) => {
+        // key format: "HabitName_YYYY_MM_DD"
+        // dayIndex is 0-based, so day is dayIndex + 1
+        return `${habit}_${currentYear}_${currentMonthIndex}_${dayIndex + 1}`;
+    };
+
+    const getWeeklyKey = (habit, weekIndex) => {
+        // key format: "HabitName_YYYY_MM_WeekN"
+        return `${habit}_${currentYear}_${currentMonthIndex}_W${weekIndex}`;
+    };
+
+    const getMonthlyKey = (habit) => {
+        // key format: "HabitName_YYYY_MM"
+        return `${habit}_${currentYear}_${currentMonthIndex}`;
+    };
 
     // -- HANDLERS --
     const toggleDaily = (habit, dayIndex) => {
         setDailyHabitsData(prev => {
-            const key = `${habit}-${dayIndex}`;
+            const key = getDailyKey(habit, dayIndex);
             const newState = { ...prev };
             if (newState[key]) delete newState[key];
             else newState[key] = true;
@@ -98,7 +122,7 @@ const HabitTracker = () => {
 
     const toggleWeekly = (habit, weekIndex) => {
         setWeeklyHabitsData(prev => {
-            const key = `${habit}-${weekIndex}`;
+            const key = getWeeklyKey(habit, weekIndex);
             const newState = { ...prev };
             if (newState[key]) delete newState[key];
             else newState[key] = true;
@@ -108,7 +132,7 @@ const HabitTracker = () => {
 
     const toggleMonthly = (habit) => {
         setMonthlyHabitsData(prev => {
-            const key = habit;
+            const key = getMonthlyKey(habit);
             const newState = { ...prev };
             if (newState[key]) delete newState[key];
             else newState[key] = true;
@@ -118,26 +142,36 @@ const HabitTracker = () => {
 
     // -- DERIVED DATA FOR GRAPHS --
 
-    // 1. Total Completed in January
-    const totalDailyCompleted = useMemo(() => Object.keys(dailyHabitsData).length, [dailyHabitsData]);
+    // 1. Total Completed in Current Month
+    const totalDailyCompleted = useMemo(() => {
+        // Count only keys that match the current month/year pattern
+        // Or simply count based on iterating the grid (which is safer if we have stale keys in the object)
+        let count = 0;
+        dailyHabitsList.forEach(habit => {
+            for (let i = 0; i < daysInCurrentMonth; i++) {
+                if (dailyHabitsData[getDailyKey(habit, i)]) count++;
+            }
+        });
+        return count;
+    }, [dailyHabitsData, dailyHabitsList, daysInCurrentMonth, currentYear, currentMonthIndex]);
 
     // 2. Daily Progress Data (For Bar Chart)
     const chartData = useMemo(() => {
-        return Array.from({ length: daysInMonth }, (_, i) => {
+        return Array.from({ length: daysInCurrentMonth }, (_, i) => {
             let count = 0;
             dailyHabitsList.forEach(habit => {
-                if (dailyHabitsData[`${habit}-${i}`]) count++;
+                if (dailyHabitsData[getDailyKey(habit, i)]) count++;
             });
             return { day: i + 1, completed: count };
         });
-    }, [dailyHabitsData, dailyHabitsList]);
+    }, [dailyHabitsData, dailyHabitsList, daysInCurrentMonth]);
 
     // 3. Monthly Progress % (Pie Chart)
     const monthlyProgressPercent = useMemo(() => {
-        const totalPossible = dailyHabitsList.length * daysInMonth;
+        const totalPossible = dailyHabitsList.length * daysInCurrentMonth;
         if (totalPossible === 0) return 0;
         return Math.round((totalDailyCompleted / totalPossible) * 100);
-    }, [totalDailyCompleted, dailyHabitsList.length]);
+    }, [totalDailyCompleted, dailyHabitsList.length, daysInCurrentMonth]);
 
     const monthlyPieData = [
         { name: 'Completed', value: monthlyProgressPercent },
@@ -145,18 +179,30 @@ const HabitTracker = () => {
     ];
 
     // 4. Weekly Pie Data (Dynamic based on selected tab would be cool, but keeping simple)
+    // 4. Weekly Pie Data
     const checklistProgress = useMemo(() => {
         if (checklistTab === 'weekly') {
-            const total = Object.keys(weeklyHabitsData).length;
+            // Count weekly items for current month
+            let total = 0;
+            weeklyHabitsList.forEach(h => {
+                weeksInMonth.forEach((_, wIdx) => {
+                    if (weeklyHabitsData[getWeeklyKey(h, wIdx)]) total++;
+                });
+            });
+
             const possible = weeklyHabitsList.length * weeksInMonth.length;
             return possible === 0 ? 0 : Math.round((total / possible) * 100);
         } else if (checklistTab === 'monthly') {
-            const total = Object.keys(monthlyHabitsData).length;
+            let total = 0;
+            monthlyHabitsList.forEach(h => {
+                if (monthlyHabitsData[getMonthlyKey(h)]) total++;
+            });
+
             const possible = monthlyHabitsList.length;
             return possible === 0 ? 0 : Math.round((total / possible) * 100);
         }
         return 0;
-    }, [weeklyHabitsData, monthlyHabitsData, checklistTab, weeklyHabitsList.length, monthlyHabitsList.length]);
+    }, [weeklyHabitsData, monthlyHabitsData, checklistTab, weeklyHabitsList, monthlyHabitsList, weeksInMonth]);
 
     const checklistPieData = [
         { name: 'Completed', value: checklistProgress },
@@ -171,6 +217,11 @@ const HabitTracker = () => {
                 <div className="flex items-baseline gap-4">
                     <h1 className="text-4xl font-bold font-['Geo']">Habit Tracker</h1>
                     <span className="opacity-60 font-['Grandstander']">Keep pushing forward</span>
+                    {!loading && Object.keys(dailyHabitsData).length === 0 && (
+                        <span className="text-red-500 text-xs font-bold animate-pulse bg-red-100 px-2 py-1 rounded">
+                            ⚠ connection lost - check server
+                        </span>
+                    )}
                 </div>
                 <button
                     onClick={() => navigate('/')}
@@ -187,7 +238,7 @@ const HabitTracker = () => {
             <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr_300px] gap-6 mb-6 shrink-0">
                 {/* Stat Card */}
                 <div className="border-2 border-current p-0 flex flex-col">
-                    <div className="bg-[var(--fg)] text-[var(--bg)] text-center py-2 font-bold uppercase tracking-widest">January</div>
+                    <div className="bg-[var(--fg)] text-[var(--bg)] text-center py-2 font-bold uppercase tracking-widest">{currentMonthName}</div>
                     <div className="flex-1 flex flex-col justify-center items-center p-6 gap-2">
                         <div className="text-sm font-bold opacity-70 uppercase tracking-widest">Total Completed</div>
                         <div className="text-6xl font-bold font-['Geo']">{totalDailyCompleted}</div>
@@ -261,7 +312,7 @@ const HabitTracker = () => {
                         <thead>
                             <tr className="text-left bg-current/5">
                                 <th className="p-3 w-[200px] font-bold border-r border-current">Habit</th>
-                                {Array.from({ length: daysInMonth }).map((_, i) => (
+                                {Array.from({ length: daysInCurrentMonth }).map((_, i) => (
                                     <th key={i} className="p-1 text-center text-[10px] sm:text-xs opacity-70 w-8 border-r border-current/20">{i + 1}</th>
                                 ))}
                                 <th className="p-3 text-center w-[80px] font-bold">Goal</th>
@@ -269,19 +320,19 @@ const HabitTracker = () => {
                         </thead>
                         <tbody>
                             {dailyHabitsList.map((habit, idx) => {
-                                // Calculate row progress
-                                const rowCompleted = Array.from({ length: daysInMonth }).filter((_, i) => dailyHabitsData[`${habit}-${i}`]).length;
+                                // Calculate row progress based on current month keys
+                                const rowCompleted = Array.from({ length: daysInCurrentMonth }).filter((_, i) => dailyHabitsData[getDailyKey(habit, i)]).length;
 
                                 return (
                                     <tr key={idx} className="border-b border-current last:border-0 hover:bg-current/5 transition-colors group">
                                         <td className="p-3 font-medium border-r border-current text-sm">{habit}</td>
-                                        {Array.from({ length: daysInMonth }).map((_, i) => (
+                                        {Array.from({ length: daysInCurrentMonth }).map((_, i) => (
                                             <td key={i} className="p-1 text-center border-r border-current/20">
                                                 <div className="flex items-center justify-center">
                                                     <input
                                                         type="checkbox"
                                                         className="appearance-none w-3.5 h-3.5 border-2 border-current rounded-sm checked:bg-[var(--fg)] cursor-pointer transition-all relative after:content-['✓'] after:absolute after:text-[var(--bg)] after:text-[10px] after:top-[-2px] after:left-[1px] after:hidden checked:after:block hover:scale-110"
-                                                        checked={!!dailyHabitsData[`${habit}-${i}`]}
+                                                        checked={!!dailyHabitsData[getDailyKey(habit, i)]}
                                                         onChange={() => toggleDaily(habit, i)}
                                                     />
                                                 </div>
@@ -335,7 +386,7 @@ const HabitTracker = () => {
                                                     <input
                                                         type="checkbox"
                                                         className="appearance-none w-3.5 h-3.5 border-2 border-current checked:bg-[var(--fg)] cursor-pointer relative after:content-['✓'] after:absolute after:text-[var(--bg)] after:text-[9px] after:top-[0px] after:left-[1px] after:hidden checked:after:block"
-                                                        checked={!!weeklyHabitsData[`${h}-${wIdx}`]}
+                                                        checked={!!weeklyHabitsData[getWeeklyKey(h, wIdx)]}
                                                         onChange={() => toggleWeekly(h, wIdx)}
                                                     />
                                                     <span className="font-medium">{h}</span>
@@ -358,7 +409,7 @@ const HabitTracker = () => {
                                                 <input
                                                     type="checkbox"
                                                     className="appearance-none w-5 h-5 border-2 border-current checked:bg-[var(--fg)] cursor-pointer relative after:content-['✓'] after:absolute after:text-[var(--bg)] after:text-[12px] after:top-[0px] after:left-[2px] after:hidden checked:after:block"
-                                                    checked={!!monthlyHabitsData[h]}
+                                                    checked={!!monthlyHabitsData[getMonthlyKey(h)]}
                                                     onChange={() => toggleMonthly(h)}
                                                 />
                                                 <span className="font-medium">{h}</span>

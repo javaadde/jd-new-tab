@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getUserId } from '../utils/user';
 
 const Footer = ({ currentTheme, onThemeChange, onBookmarkClick }) => {
     const [showThemePicker, setShowThemePicker] = useState(false);
@@ -43,7 +44,10 @@ const Footer = ({ currentTheme, onThemeChange, onBookmarkClick }) => {
                     </button>
 
                     {/* Profile Button */}
-                    <button className="h-14 px-6 border-2 border-current flex items-center justify-center text-xl font-bold hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors cursor-pointer">
+                    <button
+                        className="h-14 px-6 border-2 border-current flex items-center justify-center text-xl font-bold hover:bg-[var(--fg)] hover:text-[var(--bg)] transition-colors cursor-pointer"
+                        title="User Profile"
+                    >
                         @javaadde
                     </button>
                 </div>
@@ -177,6 +181,8 @@ const Footer = ({ currentTheme, onThemeChange, onBookmarkClick }) => {
                     </div>
                 </>
             )}
+
+
         </>
     );
 };

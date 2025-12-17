@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { apiClient } from '../api/client';
+import { getUserId } from '../utils/user';
 
 const HabitGraph = () => {
     const [activeTab, setActiveTab] = useState('github');
@@ -19,42 +21,51 @@ const HabitGraph = () => {
 
     // Real Data Integration
     const [dailyHabitsData, setDailyHabitsData] = useState({});
+    const userId = getUserId();
 
-    // Load data on mount and refresh interval (simple sync)
+    // Load data from Backend (Poll for updates)
     React.useEffect(() => {
-        const loadData = () => {
-            const saved = localStorage.getItem('jd-daily-habits');
-            setDailyHabitsData(saved ? JSON.parse(saved) : {});
+        const loadData = async () => {
+            try {
+                const data = await apiClient.get(`/habits/${userId}`);
+                setDailyHabitsData(data.dailyHabits || {});
+            } catch (error) {
+                // Silent fail or minimal log
+                // console.warn("Graph fetch error", error);
+            }
         };
         loadData();
-        // Listen for storage events (if tabs change) or just interval
-        window.addEventListener('storage', loadData);
-        // Interval for same-tab updates if navigating back
-        const interval = setInterval(loadData, 1000);
-        return () => {
-            window.removeEventListener('storage', loadData);
-            clearInterval(interval);
-        };
-    }, []);
+
+        // Poll every 2 seconds to keep in sync with Tracker updates
+        const interval = setInterval(loadData, 2000);
+        return () => clearInterval(interval);
+    }, [userId]);
 
     const dailyHabitsCount = 5; // Matches HabitTracker.jsx list length
 
     // Compute last 7 days (or first 7 days for demo)
+    // Compute last 7 days dynamically
     const habitData = React.useMemo(() => {
-        const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-        // We'll just take days 0-6 from the tracker for the "Weekly View"
-        return days.map((dayName, idx) => {
-            // Count completed habits for this day index (0-6)
+        const habits = ["Wake Up on Time", "Walk 2 Miles", "Read 1 Chapter", "Drink Water", "Code 1 Hour"];
+
+        // Generate last 7 days including today
+        return Array.from({ length: 7 }, (_, i) => {
+            const d = new Date();
+            d.setDate(d.getDate() - (6 - i)); // 6 days ago to today
+
+            const year = d.getFullYear();
+            const month = d.getMonth(); // 0-11
+            const day = d.getDate(); // 1-31
+            const dayName = d.toLocaleDateString('en-US', { weekday: 'short' });
+
             let completed = 0;
-            // Iterate habits (names from tracker known or just check keys)
-            // Simpler: iterate known list or check wildcards?
-            // We know the list in HabitTracker.jsx: "Wake Up on Time", "Walk 2 Miles", "Read 1 Chapter", "Drink Water", "Code 1 Hour"
-            const habits = ["Wake Up on Time", "Walk 2 Miles", "Read 1 Chapter", "Drink Water", "Code 1 Hour"];
             habits.forEach(h => {
-                if (dailyHabitsData[`${h}-${idx}`]) completed++;
+                // construction: "HabitName_YYYY_MM_DD"
+                // matches HabitTracker.jsx getDailyKey logic
+                const key = `${h}_${year}_${month}_${day}`;
+                if (dailyHabitsData[key]) completed++;
             });
 
-            // Calc percentage
             const pct = dailyHabitsCount > 0 ? Math.round((completed / dailyHabitsCount) * 100) : 0;
             return { day: dayName, value: pct };
         });
