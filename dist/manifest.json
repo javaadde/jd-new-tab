@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "My Custom New Tab",
+  "version": "1.0.0",
+  "description": "A custom new tab page built with React.",
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "bookmarks",
+    "chrome://favicon/"
+  ],
+  "host_permissions": [
+    "chrome://favicon/*"
+  ]
+}
