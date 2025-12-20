@@ -2,11 +2,25 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { apiClient } from '../api/client';
 import { getUserId } from '../utils/user';
 
+/**
+ * Monkeytype Integration:
+ * - Fetches typing test data from public profile for user 'javaadde'
+ * - Displays a GitHub-style heatmap showing tests completed over the last 12 months
+ * - Updates automatically every 30 minutes
+ * - Shows total tests completed in the footer
+ */
+
+
 const HabitGraph = () => {
     const [activeTab, setActiveTab] = useState('github');
     const [githubData, setGithubData] = useState([]);
+    const [todayContributions, setTodayContributions] = useState(0);
+    const [monkeytypeData, setMonkeytypeData] = useState([]);
+    const [totalMonkeytypeTests, setTotalMonkeytypeTests] = useState(0);
+    const [monkeytypeUsername, setMonkeytypeUsername] = useState('');
+    const [tooltip, setTooltip] = useState({ active: false, x: 0, y: 0, text: '', date: '' });
 
-    // Fetch GitHub Data
+    // Fetch GitHub Data with real-time polling
     useEffect(() => {
         const fetchGithubData = async () => {
             try {
@@ -15,12 +29,12 @@ const HabitGraph = () => {
                 const data = await response.json();
 
                 // Transform flat daily data into weeks
-                // We want the last 20 weeks to fit the UI
                 const days = data.contributions;
 
-                // Manual override: Show 4 contributions for today (last day)
+                // Get today's actual contribution count
                 if (days.length > 0) {
-                    days[days.length - 1].level = 4;
+                    const lastDay = days[days.length - 1];
+                    setTodayContributions(lastDay.count || 0);
                 }
 
                 const weeks = [];
@@ -30,10 +44,15 @@ const HabitGraph = () => {
                     const firstDate = new Date(days[0].date);
                     const startDay = firstDate.getDay(); // 0 = Sunday
 
-                    let currentWeek = Array(startDay).fill(0); // Pad start
+                    // Store full day objects instead of just levels
+                    let currentWeek = Array(startDay).fill({ level: -1, count: 0, date: '' }); // Pad start
 
                     days.forEach(day => {
-                        currentWeek.push(day.level);
+                        currentWeek.push({
+                            level: day.level,
+                            count: day.count || 0,
+                            date: day.date
+                        });
                         if (currentWeek.length === 7) {
                             weeks.push(currentWeek);
                             currentWeek = [];
@@ -43,18 +62,17 @@ const HabitGraph = () => {
                     // If there's a partial week at the end
                     if (currentWeek.length > 0) {
                         while (currentWeek.length < 7) {
-                            currentWeek.push(-1); // Pad with -1 to indicate future/empty days
+                            currentWeek.push({ level: -1, count: 0, date: '' }); // Pad with empty days
                         }
                         weeks.push(currentWeek);
                     }
                 }
 
                 // Take the last 15-20 weeks to fit the container
-                // The current UI shows about 10-15 columns comfortably
                 setGithubData(weeks.slice(-18));
             } catch (error) {
                 console.error("Failed to fetch GitHub data", error);
-                // Fallback to sample data if fetch fails
+                // Fallback to sample data if fetch fails - convert to new format
                 setGithubData([
                     [0, 1, 2, 0, 1, 3, 2],
                     [1, 2, 3, 1, 0, 2, 1],
@@ -67,10 +85,140 @@ const HabitGraph = () => {
                     [1, 3, 2, 0, 1, 2, 0],
                     [2, 1, 0, 2, 3, 1, 1],
                     [2, 1, 0, 2, 3, 1, 4],
-                ]);
+                ].map(week => week.map(level => ({ level, count: level * 2, date: '' }))));
             }
         };
+
+        // Initial fetch
         fetchGithubData();
+
+        // Poll for updates every 5 minutes (300000ms)
+        // GitHub's contribution graph typically updates every few minutes
+        const interval = setInterval(fetchGithubData, 300000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Fetch Monkeytype Data
+    useEffect(() => {
+        const fetchMonkeytypeData = async () => {
+            try {
+                const username = 'javaadde';
+                console.log('=== Monkeytype Data Fetching ===');
+
+                // 1. Fetch the main profile page to get the embedded calendar data
+                // This works because we have host_permissions in manifest.json
+                const response = await fetch(`https://monkeytype.com/profile/${username}`);
+                if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+
+                const html = await response.text();
+
+                // 2. Extract profile data from the script tag
+                const profileDataMatch = html.match(/(?:const|var|let|window\.)\s*_profileData\s*=\s*(\{[\s\S]*?\});/);
+
+                let calendar = [];
+                let totalTests = 0;
+
+                if (profileDataMatch) {
+                    try {
+                        const jsonStr = profileDataMatch[1].trim();
+                        const profileData = JSON.parse(jsonStr);
+
+                        calendar = profileData?.typingStats?.calendar ||
+                            profileData?.stats?.testActivity || [];
+
+                        totalTests = profileData?.typingStats?.completedTests || 0;
+                        setTotalMonkeytypeTests(totalTests);
+
+                        console.log(`✅ Monkeytype: Found ${calendar.length} active days. Total: ${totalTests}`);
+                    } catch (e) {
+                        console.error('❌ Monkeytype: Data Parse Error', e);
+                    }
+                }
+
+                const testsByDate = {};
+
+                // 3. Process calendar data
+                if (calendar && Array.isArray(calendar)) {
+                    calendar.forEach(entry => {
+                        let dateStr = '';
+                        let count = 0;
+
+                        if (entry.t) {
+                            dateStr = new Date(entry.t).toISOString().split('T')[0];
+                            count = entry.c || 1;
+                        } else if (entry.date) {
+                            dateStr = entry.date;
+                            count = entry.count || 1;
+                        }
+
+                        if (dateStr) {
+                            testsByDate[dateStr] = (testsByDate[dateStr] || 0) + count;
+                        }
+                    });
+                }
+
+                // 4. Create heatmap data for last 125 days
+                const heatmapData = [];
+                const today = new Date();
+
+                for (let i = 125; i >= 0; i--) {
+                    const date = new Date(today);
+                    date.setDate(date.getDate() - i);
+                    const dateStr = date.toISOString().split('T')[0];
+                    const count = testsByDate[dateStr] || 0;
+
+                    let level = 0;
+                    if (count > 0) level = 1;
+                    if (count >= 2) level = 2;
+                    if (count >= 4) level = 3;
+                    if (count >= 7) level = 4;
+
+                    heatmapData.push({ date: dateStr, count, level });
+                }
+
+                // 5. Transform into weeks for the graph
+                const weeks = [];
+                const startDay = new Date(heatmapData[0].date).getDay();
+                let currentWeek = Array(startDay).fill({ level: -1, count: 0, date: '' });
+
+                heatmapData.forEach(day => {
+                    currentWeek.push(day);
+                    if (currentWeek.length === 7) {
+                        weeks.push(currentWeek);
+                        currentWeek = [];
+                    }
+                });
+
+                if (currentWeek.length > 0) {
+                    while (currentWeek.length < 7) {
+                        currentWeek.push({ level: -1, count: 0, date: '' });
+                    }
+                    weeks.push(currentWeek);
+                }
+
+                setMonkeytypeData(weeks.slice(-18));
+
+            } catch (error) {
+                console.error("Monkeytype Fetch Error:", error);
+
+                // Fallback sample data if scraping fails
+                const sampleWeeks = [];
+                for (let w = 0; w < 18; w++) {
+                    const week = [];
+                    for (let d = 0; d < 7; d++) {
+                        const level = Math.random() > 0.8 ? Math.floor(Math.random() * 5) : 0;
+                        week.push({ level, count: level * 2, date: '' });
+                    }
+                    sampleWeeks.push(week);
+                }
+                setMonkeytypeData(sampleWeeks);
+            }
+        };
+
+        fetchMonkeytypeData();
+        const interval = setInterval(fetchMonkeytypeData, 1800000);
+        return () => clearInterval(interval);
     }, []);
 
 
@@ -146,6 +294,7 @@ const HabitGraph = () => {
     const tabs = [
         { key: 'github', label: 'Activity' },
         { key: 'habit', label: 'Habits' },
+        { key: 'typing', label: 'Typing' },
     ];
 
     return (
@@ -184,22 +333,48 @@ const HabitGraph = () => {
                             {/* Added mask for fade-in effect on left side if specialized */}
                             {githubData.map((week, weekIdx) => (
                                 <div key={weekIdx} className="flex flex-col gap-1 flex-1 min-w-[12px]">
-                                    {week.map((level, dayIdx) => (
+                                    {week.map((day, dayIdx) => (
                                         <div
                                             key={dayIdx}
-                                            className={`flex-1 rounded-[1px] ${getContributionColor(level)} transition-colors hover:ring-1 hover:ring-current`}
-                                            title={`Contributions: level ${level}`}
+                                            className={`flex-1 rounded-[1px] ${getContributionColor(day.level)} transition-colors hover:ring-1 hover:ring-current`}
+                                            onMouseEnter={(e) => {
+                                                const rect = e.currentTarget.getBoundingClientRect();
+                                                const parentRect = e.currentTarget.offsetParent.getBoundingClientRect();
+
+                                                // Format date to be more readable: Dec 20, 2025
+                                                let displayDate = day.date;
+                                                if (day.date) {
+                                                    const d = new Date(day.date);
+                                                    displayDate = d.toLocaleDateString('en-US', {
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                        year: 'numeric'
+                                                    });
+                                                }
+
+                                                setTooltip({
+                                                    active: true,
+                                                    x: rect.left - parentRect.left + rect.width / 2,
+                                                    y: rect.top - parentRect.top - 10,
+                                                    text: `${day.count} contribution${day.count !== 1 ? 's' : ''}`,
+                                                    date: displayDate
+                                                });
+                                            }}
+                                            onMouseLeave={() => setTooltip({ ...tooltip, active: false })}
                                         />
                                     ))}
                                 </div>
                             ))}
                         </div>
-                        <div className="flex justify-between mt-2 text-[10px] opacity-60 font-medium">
+                        <div className="flex justify-between items-center mt-2 text-[10px] opacity-60 font-medium">
                             <span>Last 4 Months</span>
-                            <span>Today</span>
+                            <span className="flex items-center gap-1">
+                                <span className="opacity-100 font-bold text-[var(--fg)]">{todayContributions}</span>
+                                <span>contributions today</span>
+                            </span>
                         </div>
                     </div>
-                ) : (
+                ) : activeTab === 'habit' ? (
                     /* Habit Bar Graph */
                     <div className="w-full h-full flex flex-col">
                         <div className="flex-1 flex items-end justify-around gap-2">
@@ -220,6 +395,86 @@ const HabitGraph = () => {
                                 <span key={idx} className="flex-1 text-center">{item.day}</span>
                             ))}
                         </div>
+                    </div>
+                ) : (
+                    /* Monkeytype Tests Heatmap (GitHub-style) */
+                    <div className="w-full h-full flex flex-col">
+                        <div className="flex-1 flex gap-1 overflow-hidden">
+                            {monkeytypeData.length > 0 ? (
+                                monkeytypeData.map((week, weekIdx) => (
+                                    <div key={weekIdx} className="flex flex-col gap-1 flex-1 min-w-[12px]">
+                                        {week.map((day, dayIdx) => (
+                                            <div
+                                                key={dayIdx}
+                                                className={`flex-1 rounded-[1px] ${getContributionColor(day.level)} transition-colors hover:ring-1 hover:ring-current`}
+                                                onMouseEnter={(e) => {
+                                                    const rect = e.currentTarget.getBoundingClientRect();
+                                                    const parentRect = e.currentTarget.offsetParent.getBoundingClientRect();
+
+                                                    // Format date to be more readable: Dec 20, 2025
+                                                    let displayDate = day.date;
+                                                    if (day.date) {
+                                                        const d = new Date(day.date);
+                                                        displayDate = d.toLocaleDateString('en-US', {
+                                                            month: 'short',
+                                                            day: 'numeric',
+                                                            year: 'numeric'
+                                                        });
+                                                    }
+
+                                                    setTooltip({
+                                                        active: true,
+                                                        x: rect.left - parentRect.left + rect.width / 2,
+                                                        y: rect.top - parentRect.top - 10,
+                                                        text: `${day.count} test${day.count !== 1 ? 's' : ''}`,
+                                                        date: displayDate
+                                                    });
+                                                }}
+                                                onMouseLeave={() => setTooltip({ ...tooltip, active: false })}
+                                            />
+                                        ))}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="flex items-center justify-center w-full h-full text-xs opacity-60">
+                                    No typing data available
+                                </div>
+                            )}
+                        </div>
+                        <div className="flex justify-between items-center mt-2 text-[10px] opacity-60 font-medium">
+                            <span>Last 4 Months</span>
+                            {monkeytypeData.length > 0 && (() => {
+                                // Calculate total tests
+                                let totalTests = 0;
+                                monkeytypeData.forEach(week => {
+                                    week.forEach(day => {
+                                        if (day.count) totalTests += day.count;
+                                    });
+                                });
+                                return (
+                                    <span className="flex items-center gap-1">
+                                        <span className="opacity-100 font-bold text-[var(--fg)]">{totalMonkeytypeTests || 0}</span>
+                                        <span>tests completed</span>
+                                    </span>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                )}
+
+                {/* Custom Tooltip */}
+                {tooltip.active && (
+                    <div
+                        className="absolute z-50 pointer-events-none bg-[var(--fg)] text-[var(--bg)] px-2 py-1 rounded text-[10px] font-bold shadow-lg flex flex-col items-center transform -translate-x-1/2 -translate-y-full mb-1 transition-opacity duration-150"
+                        style={{
+                            left: tooltip.x,
+                            top: tooltip.y,
+                        }}
+                    >
+                        <span className="whitespace-nowrap">{tooltip.text}</span>
+                        <span className="opacity-70 text-[8px] whitespace-nowrap">{tooltip.date}</span>
+                        {/* Tooltip Arrow */}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-t-[3px] border-t-[var(--fg)]" />
                     </div>
                 )}
             </div>

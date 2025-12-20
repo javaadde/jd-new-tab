@@ -13,6 +13,8 @@
     "chrome://favicon/"
   ],
   "host_permissions": [
-    "chrome://favicon/*"
+    "chrome://favicon/*",
+    "https://api.monkeytype.com/*",
+    "https://monkeytype.com/*"
   ]
 }
