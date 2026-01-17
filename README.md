@@ -1,301 +1,154 @@
-# 🚀 My Custom New Tab
+# 🚀 JD New Tab - Premium Productivity Dashboard
 
 <div align="center">
 
 ![Chrome Extension](https://img.shields.io/badge/Chrome%20Extension-v1.0.0-blue?style=for-the-badge&logo=google-chrome&logoColor=white)
 ![React](https://img.shields.io/badge/React-19.1.1-61DAFB?style=for-the-badge&logo=react&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-7.1.7-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.1.14-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4.x-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 
-**A beautiful, feature-rich custom new tab page for Chrome built with React**
+**Transform your browser's new tab into a high-performance productivity suite.**
 
-[![Installation Guide](https://img.shields.io/badge/📖-Installation%20Guide-green?style=for-the-badge)](#-installation)
-[![Features](https://img.shields.io/badge/✨-Features-purple?style=for-the-badge)](#-features)
-[![Screenshots](https://img.shields.io/badge/📸-Screenshots-orange?style=for-the-badge)](#-screenshots)
+[Installation Guide](#-installation) • [Key Features](#-features) • [Screenshots](#-screenshots) • [Tech Stack](#-tech-stack)
 
+</div>
+
+---
+
+## 📸 Screenshots
+
+<div align="center">
+  <table style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td width="50%"><img src="images/1.png" alt="Main Dashboard" width="100%"><br><sub><b>Main Dashboard</b>: Minimalist AI Hub & Search</sub></td>
+      <td width="50%"><img src="images/2.png" alt="Habit Tracker" width="100%"><br><sub><b>Habit Tracker</b>: Daily Matrix & Goal Tracking</sub></td>
+    </tr>
+    <tr>
+      <td width="50%"><img src="images/3.png" alt="Weekly Tasks" width="100%"><br><sub><b>Weekly Tasks</b>: Organized Planning</sub></td>
+      <td width="50%"><img src="images/4.png" alt="Monthly Review" width="100%"><br><sub><b>Monthly Review</b>: Goal Analysis & Quotes</sub></td>
+    </tr>
+    <tr>
+      <td width="50%"><img src="images/5.png" alt="Quick Links" width="100%"><br><sub><b>Quick Links</b>: Categorized Resources</sub></td>
+      <td width="50%"><img src="images/6.png" alt="Theme Selector" width="100%"><br><sub><b>Custom Themes</b>: Vibrant Color Palettes</sub></td>
+    </tr>
+  </table>
 </div>
 
 ---
 
 ## ✨ Features
 
-### 🕐 **Animated Clock**
-- Beautiful flip-clock animation
-- Real-time updates
-- Modern design with smooth transitions
-
-### 🔍 **Multi-Engine Search**
-- **Google** - Default search engine
-- **DuckDuckGo** - Privacy-focused search
-- **Bing** - Microsoft's search engine
-- **Brave Search** - Independent search
-- **YouTube** - Video search
-- **Reddit** - Community search
-- **Wikipedia** - Knowledge search
-
-### 📚 **Smart Bookmarks**
-- Automatic bookmark synchronization
-- Quick access to your saved sites
-- Clean, organized display
-- Chrome API integration
-
-### 📝 **Todo List**
-- Persistent task management
-- Cross-tab synchronization
-- Add, complete, and delete tasks
-- Local storage integration
-
-### 🎯 **Google Apps Hub**
-- Quick access to Google services
-- **Gmail, YouTube, Drive, Maps, Calendar**
-- **Photos, Translate, Meet, Chat**
-- **Play Store, Music, and more**
+### 🏢 **Central Command Center**
+- **Dynamic Headline**: Greeting and motivational "Exploring" header.
+- **Universal Search**: Integrated multi-engine search (Google, YouTube, Reddit, etc.) with shortcut support.
+- **Real-time Clock**: Precise time-keeping with a modern minimal aesthetic.
 
 ### 🤖 **AI Tools Integration**
-- Quick access to AI-powered tools
-- Modern interface design
-- Seamless integration
+- **Instant Access**: One-click shortcuts to ChatGPT, Claude, Gemini, DeepSeek, and more.
+- **Categorized Workflow**: Seamlessly switch between different AI models for research, coding, or creativity.
 
-### 🎨 **Modern UI/UX**
-- Dark theme with elegant design
-- Responsive layout
-- Smooth animations
-- Professional typography
+### 📊 **Advanced Habit Tracking**
+- **Intensity Heatmap**: Large GitHub-style contribution graph to visualize your consistency across **Habits**, **Activity**, and **Typing**.
+- **Typing Integration**: Track your typing progress (integrated with Monkeytype).
+- **Habit Matrix**: Track multiple daily habits (e.g., LeetCode, Reading, Exercise) in a clean grid layout.
+- **Progress Analytics**: Visual goal rings to monitor your monthly and yearly progress.
+
+### 📝 **Intelligent Task Management**
+- **Weekly Planning**: Segmented views for Week 1 through 4 to keep your month organized.
+- **Goal Gauges**: Real-time progress indicators for your current task lists.
+- **Persistence**: Tasks are saved locally and synced across your browser sessions.
+
+### 🎨 **Personalization & UI**
+- **Theme Engine**: Curated selection of themes including Ocean Blue, Sage, Wine, and Teal.
+- **Glassmorphism Design**: Modern, clean, and distraction-free interface.
+- **Responsive Layout**: Adapts perfectly to any screen resolution.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **React** | 19.1.1 | Frontend framework |
-| **Vite** | 7.1.7 | Build tool & dev server |
-| **Tailwind CSS** | 4.1.14 | Styling framework |
-| **Lucide React** | 0.545.0 | Icon library |
-| **React Flip Clock** | 1.7.2 | Clock animations |
-| **Chrome APIs** | Latest | Extension functionality |
+- **Frontend**: [React 19](https://react.dev/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **Build Tool**: [Vite 7](https://vitejs.dev/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Animations**: [React Flip Clock](https://www.npmjs.com/package/@leenguyen/react-flip-clock-countdown)
+- **State Management**: React Hooks & Local Storage
 
 ---
 
 ## 📦 Installation
 
-### Prerequisites
-- **Node.js** (v16 or higher)
-- **npm** or **yarn**
-- **Google Chrome** browser
-
 ### Development Setup
 
 1. **Clone the repository**
    ```bash
-   git clone <your-repo-url>
-   cd extention
+   git clone https://github.com/javaadde/jd-new-tab.git
+   cd jd-new-tab
    ```
 
 2. **Install dependencies**
    ```bash
    npm install
-   # or
-   yarn install
    ```
 
-3. **Start development server**
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-
-4. **Build for production**
+3. **Build the extension**
    ```bash
    npm run build
-   # or
-   yarn build
    ```
 
-### Chrome Extension Installation
+### Load in Chrome
 
-1. **Open Chrome Extensions**
-   - Navigate to `chrome://extensions/`
-   - Enable **Developer mode** (toggle in top-right)
-
-2. **Load the extension**
-   - Click **"Load unpacked"**
-   - Select the `dist/` folder from your project
-
-3. **Set as default new tab**
-   - The extension will automatically override your new tab page
-   - Enjoy your custom new tab experience!
-
----
-
-## 🎯 Usage
-
-### Search Functionality
-- **Type** your query in the search bar
-- **Select** your preferred search engine from the dropdown
-- **Press Enter** or click the search button
-
-### Managing Bookmarks
-- Click the **Bookmarks** button (top-right)
-- View your Chrome bookmarks
-- Click any bookmark to visit the site
-
-### Todo Management
-- Click the **Todo** button to open the task panel
-- **Add** new tasks by typing and pressing Enter
-- **Mark complete** by clicking the checkbox
-- **Delete** tasks with the trash icon
-
-### Google Apps Access
-- Click the **grid icon** (top-right)
-- Browse available Google services
-- Click any app to open it in a new tab
-
----
-
-## 🎨 Customization
-
-### Adding New Search Engines
-Edit `src/components/searchEngines.js`:
-
-```javascript
-{
-  id: "your-engine",
-  name: "Your Engine",
-  url: "https://your-engine.com/search?q=",
-  icon: "your-svg-path"
-}
-```
-
-### Styling Modifications
-- **Colors**: Edit `tailwind.config.js`
-- **Components**: Modify files in `src/components/`
-- **Global styles**: Update `src/index.css`
-
-### Adding New Features
-1. Create component in `src/components/`
-2. Import and use in `src/App.jsx`
-3. Add any required Chrome permissions to `manifest.json`
+1. Open Chrome and navigate to `chrome://extensions/`.
+2. Toggle **Developer mode** in the top-right corner.
+3. Click **Load unpacked**.
+4. Select the `dist` folder from this project directory.
+5. Open a new tab and enjoy!
 
 ---
 
 ## 📁 Project Structure
 
+```text
+jd-new-tab/
+├── 📁 dist/                # Optimized production build
+├── 📁 images/              # Project screenshots & assets
+├── 📁 src/
+│   ├── 📁 components/      # UI Components (Clock, Search, HabitGraph)
+│   ├── 📁 pages/           # Main Views (Home, HabitTracker)
+│   ├── 📁 utils/           # Helper functions
+│   ├── 📄 App.jsx          # Root component & Routing
+│   └── 📄 main.jsx         # Entry point
+├── 📄 manifest.json        # Extension configuration
+└── 📄 vite.config.js       # Build configuration
 ```
-extention/
-├── 📁 dist/                    # Built extension files
-│   ├── 📄 manifest.json        # Extension configuration
-│   ├── 📄 index.html           # Main HTML file
-│   └── 📁 assets/              # Compiled CSS/JS
-├── 📁 src/                     # Source code
-│   ├── 📁 components/          # React components
-│   │   ├── 🕐 Clock.jsx        # Animated clock
-│   │   ├── 🔍 SearchEngine.jsx # Search functionality
-│   │   ├── 📚 Bookmarks.jsx    # Bookmark manager
-│   │   ├── 📝 TodoList.jsx      # Task management
-│   │   ├── 🎯 GoogleApps.jsx   # Google services
-│   │   └── 🤖 AiTools.jsx      # AI tools
-│   ├── 📄 App.jsx              # Main application
-│   └── 📄 main.jsx             # Entry point
-├── 📄 manifest.json            # Extension manifest
-├── 📄 package.json             # Dependencies
-└── 📄 vite.config.js           # Build configuration
-```
-
----
-
-## 🔧 Development
-
-### Available Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
-| `npm run lint` | Run ESLint |
-
-### Building for Production
-
-```bash
-# Build the extension
-npm run build
-
-# The dist/ folder will contain your extension
-# Load this folder in Chrome as an unpacked extension
-```
-
----
-
-## 🚀 Deployment
-
-### Chrome Web Store (Future)
-1. **Prepare your extension**
-   - Ensure all features work correctly
-   - Test in different Chrome versions
-   - Create store assets (icons, screenshots)
-
-2. **Package for store**
-   - Zip the `dist/` folder contents
-   - Follow Chrome Web Store guidelines
-
-### Manual Distribution
-- Share the `dist/` folder
-- Users can load it as an unpacked extension
-- Perfect for testing and small-scale distribution
 
 ---
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+Contributions are welcome! If you have ideas for new features or improvements, feel free to open an issue or submit a pull request.
 
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** your changes (`git commit -m 'Add amazing feature'`)
-4. **Push** to the branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
-### Development Guidelines
-- Follow existing code style
-- Add comments for complex logic
-- Test your changes thoroughly
-- Update documentation if needed
-
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+1. Fork the Project
+2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the Branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ---
 
 ## 👨‍💻 Author
 
-**Javaad** - [Portfolio](https://javaadde.github.io/portfolio)
+**Javaad** - [@javaadde](https://github.com/javaadde)
 
----
-
-## 🙏 Acknowledgments
-
-- **React Team** - For the amazing framework
-- **Vite Team** - For the lightning-fast build tool
-- **Tailwind CSS** - For the utility-first CSS framework
-- **Chrome Extensions Team** - For the powerful APIs
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/javaadde)
+[![Portfolio](https://img.shields.io/badge/Portfolio-2563EB?style=for-the-badge&logo=google-chrome&logoColor=white)](https://javaadde.github.io/portfolio)
 
 ---
 
 <div align="center">
 
-### ⭐ Star this repository if you found it helpful!
+### ⭐ Star this repository if you found it useful!
 
-**Made with ❤️ and lots of ☕**
-
-[![GitHub stars](https://img.shields.io/github/stars/your-username/your-repo?style=social)](https://github.com/your-username/your-repo)
-[![GitHub forks](https://img.shields.io/github/forks/your-username/your-repo?style=social)](https://github.com/your-username/your-repo)
+**Made with ❤️ for productivity enthusiasts.**
 
 </div>
-
-
-new light theme is coming
