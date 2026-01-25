@@ -1,4 +1,4 @@
-# 🚀 JD New Tab - Premium Productivity Dashboard
+# JD New Tab - Premium Productivity Dashboard
 
 <div align="center">
 
