@@ -15,7 +15,7 @@
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 <div align="center">
   <table style="width: 100%; border-collapse: collapse;">
